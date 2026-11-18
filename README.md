@@ -1,6 +1,10 @@
 # Spring Boot Live Streaming
 
 [![CI](https://github.com/hendisantika/spring-boot-live-streaming/actions/workflows/ci.yml/badge.svg)](https://github.com/hendisantika/spring-boot-live-streaming/actions/workflows/ci.yml)
+[![Live Demo](https://img.shields.io/badge/demo-live.jvm.my.id-4f46e5)](https://live.jvm.my.id)
+
+🔴 **Live demo: [https://live.jvm.my.id](https://live.jvm.my.id)**: masukkan nama kelas, lalu gabung sebagai Peserta.
+Buka kelas yang sama di dua perangkat untuk mencoba chat dan angkat tangan.
 
 Platform **kelas live** yang bisa ditanam di web maupun aplikasi mobile: host dan co-host tampil di
 panggung (kamera, mic, share screen), peserta menyimak, chat, dan sesekali tanya jawab.
@@ -112,9 +116,13 @@ Angkat tangan dikirim lewat data channel dengan topic `raise-hand` dan payload `
 
 | Komponen | Domain | Hosting |
 |---|---|---|
-| Frontend Next.js | https://live.jvm.my.id | Vercel (root directory `frontend`, auto deploy dari `main`) |
-| Backend Spring Boot | https://streaming.jvm.my.id/api | VPS di belakang nginx |
-| LiveKit signaling | wss://streaming.jvm.my.id/rtc | VPS yang sama, di belakang nginx |
+| Frontend Next.js | [https://live.jvm.my.id](https://live.jvm.my.id) | Vercel (root directory `frontend`, auto deploy dari `main`) |
+| Backend Spring Boot | `https://streaming.jvm.my.id/api` | Docker di server, di belakang nginx |
+| LiveKit signaling | `wss://streaming.jvm.my.id/rtc` | Docker di server yang sama, di belakang nginx |
+| Health check nginx | [https://streaming.jvm.my.id/healthz](https://streaming.jvm.my.id/healthz) | Mengembalikan `ok` |
+
+> `https://streaming.jvm.my.id/` dan `GET /api/` memang mengembalikan 404: backend hanya melayani endpoint
+> di bagian [API](#api) (mis. `POST /api/rooms/{room}/token`).
 
 ### Frontend (Vercel)
 
