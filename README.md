@@ -108,6 +108,39 @@ Aplikasi mobile memakai endpoint token yang sama, lalu terhubung dengan SDK Live
 [Android](https://github.com/livekit/client-sdk-android).
 Angkat tangan dikirim lewat data channel dengan topic `raise-hand` dan payload `{"raised": true|false}`.
 
+## Deployment (Produksi)
+
+| Komponen | Domain | Hosting |
+|---|---|---|
+| Frontend Next.js | https://live.jvm.my.id | Vercel (root directory `frontend`, auto deploy dari `main`) |
+| Backend Spring Boot | https://streaming.jvm.my.id/api | VPS di belakang nginx |
+| LiveKit signaling | wss://streaming.jvm.my.id/rtc | VPS yang sama, di belakang nginx |
+
+### Frontend (Vercel)
+
+- Env Vercel: `NEXT_PUBLIC_API_URL=https://streaming.jvm.my.id`
+- DNS (Cloudflare): `CNAME live → <target dari "vercel domains verify live.jvm.my.id">`, mode **DNS only** (awan abu-abu).
+
+### Backend + LiveKit (VPS)
+
+1. Pasang config nginx [`nginx/streaming.jvm.my.id.conf`](nginx/streaming.jvm.my.id.conf) (langkah ada di header file),
+   lalu terbitkan sertifikat dengan certbot. Butuh nginx 1.25.1 atau lebih baru (`http2 on`).
+2. Jalankan backend:
+   ```bash
+   LIVEKIT_URL=wss://streaming.jvm.my.id \
+   LIVEKIT_API_URL=http://127.0.0.1:7880 \
+   LIVEKIT_API_KEY=<key> LIVEKIT_API_SECRET=<secret> \
+   LIVEKIT_HOST_ACCESS_KEY=<kunci-host> \
+   LIVEKIT_ALLOWED_ORIGINS=https://live.jvm.my.id \
+   java -jar target/live-streaming-0.0.1-SNAPSHOT.jar
+   ```
+3. Jalankan LiveKit Server (non-dev) dengan key/secret yang sama dan `rtc.use_external_ip: true`.
+4. Buka firewall: `80/tcp`, `443/tcp`, `7881/tcp`, dan `7882/udp` (atau rentang UDP yang diset di `livekit.yaml`).
+   Port `7880` cukup diakses lewat nginx dan tidak perlu dibuka ke publik.
+
+> Kalau `streaming.jvm.my.id` di-proxy Cloudflare (awan oranye), set SSL/TLS ke **Full (strict)**.
+> Signaling WebSocket tetap jalan lewat Cloudflare, sedangkan media WebRTC langsung ke IP server.
+
 ## Testing
 
 ```bash
