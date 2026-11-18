@@ -113,32 +113,25 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - uses: actions/checkout@v7
-
-      - name: Copy compose files
-        uses: appleboy/scp-action@v1
-        with:
-          host: ${{ vars.SSH_HOST }}
-          port: ${{ vars.SSH_PORT }}
-          username: ${{ vars.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "deploy/compose.yaml,deploy/livekit.yaml"
-          target: "~/live-streaming"
-          strip_components: 1
-
       - name: Pull & restart containers
         uses: appleboy/ssh-action@v1
         env:
           IMAGE_TAG: ${{ github.run_number }}
+          # Server mengambil file compose dari commit yang sama (repo public), jadi cukup 1 koneksi SSH:
+          # server membatasi koneksi SSH beruntun (connection reset).
+          RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/deploy
         with:
           host: ${{ vars.SSH_HOST }}
           port: ${{ vars.SSH_PORT }}
           username: ${{ vars.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: IMAGE_TAG
+          envs: IMAGE_TAG,RAW_BASE
           script: |
             set -e
-            cd ~/live-streaming
+            mkdir -p ~/live-streaming && cd ~/live-streaming
+            for f in compose.yaml livekit.yaml; do
+              curl -fsSL "${RAW_BASE}/${f}" -o "${f}.new" && mv "${f}.new" "${f}"
+            done
             test -f .env || { echo "~/live-streaming/.env belum ada (lihat deploy/.env.example)"; exit 1; }
             if grep -q '^IMAGE_TAG=' .env; then
               sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" .env
