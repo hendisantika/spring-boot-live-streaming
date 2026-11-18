@@ -7,33 +7,49 @@ import { ROOM_PATTERN } from "@/lib/api";
 export default function EnterRoomForm() {
   const router = useRouter();
   const [room, setRoom] = useState("");
+  const [touched, setTouched] = useState(false);
   const valid = ROOM_PATTERN.test(room);
+  const showError = touched && !valid;
 
   return (
     <form
-      className="flex w-full flex-col gap-3 sm:flex-row"
+      className="flex w-full max-w-xl flex-col gap-4"
       onSubmit={(e) => {
         e.preventDefault();
+        setTouched(true);
         if (valid) router.push(`/room/${room}`);
       }}
     >
-      <label className="sr-only" htmlFor="room">
+      <label htmlFor="room" className="text-sm text-kapur-redup">
         Nama kelas
       </label>
-      <input
-        id="room"
-        value={room}
-        onChange={(e) => setRoom(e.target.value.trim())}
-        placeholder="mis. matematika-kelas-7"
-        className="flex-1 rounded-lg border border-zinc-300 bg-white px-4 py-3 text-zinc-900 outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100"
-      />
-      <button
-        type="submit"
-        disabled={!valid}
-        className="rounded-lg bg-indigo-600 px-5 py-3 font-medium text-white transition hover:bg-indigo-500 disabled:cursor-not-allowed disabled:opacity-40"
-      >
-        Masuk kelas
-      </button>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+        <input
+          id="room"
+          value={room}
+          onChange={(e) => setRoom(e.target.value.trim())}
+          onBlur={() => room.length > 0 && setTouched(true)}
+          placeholder="matematika-kelas-7"
+          autoComplete="off"
+          spellCheck={false}
+          aria-invalid={showError}
+          aria-describedby="room-hint"
+          className="garis-kapur flex-1 px-1 pb-2 font-kapur text-4xl text-kapur placeholder:text-kapur/30 sm:text-5xl"
+        />
+        <button
+          type="submit"
+          className="rounded-full bg-pensil px-7 py-3.5 font-semibold text-tinta transition-colors hover:bg-pensil-tekan"
+        >
+          Masuk kelas
+        </button>
+      </div>
+      <p id="room-hint" className={`text-sm ${showError ? "text-[#f3a497]" : "text-kapur-redup"}`}>
+        {showError
+          ? room.length === 0
+            ? "Tulis nama kelas dulu, misalnya matematika-kelas-7."
+            : "Pakai huruf, angka, tanda - atau _ saja, tanpa spasi."
+          : "Semua orang yang memasukkan nama kelas yang sama akan berada di ruang yang sama."}
+      </p>
     </form>
   );
 }

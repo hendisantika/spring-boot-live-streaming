@@ -1,26 +1,149 @@
 @import "tailwindcss";
 
+/* Papan tulis kelas: hijau papan, kapur, pensil kuning, tinta merah */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --papan: #183b33;
+  --papan-gelap: #10291f;
+  --papan-garis: #2b5247;
+  --papan-terang: #23493f;
+  --kapur: #eef2ec;
+  --kapur-redup: #a9bab2;
+  --pensil: #f5c443;
+  --pensil-tekan: #e3ae2a;
+  --tinta-merah: #e05a47;
+  --kertas: #f7f9f6;
+  --kertas-garis: #dfe6e1;
+  --tinta: #13201c;
+  --tinta-redup: #4f625b;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-papan: var(--papan);
+  --color-papan-gelap: var(--papan-gelap);
+  --color-papan-garis: var(--papan-garis);
+  --color-papan-terang: var(--papan-terang);
+  --color-kapur: var(--kapur);
+  --color-kapur-redup: var(--kapur-redup);
+  --color-pensil: var(--pensil);
+  --color-pensil-tekan: var(--pensil-tekan);
+  --color-tinta-merah: var(--tinta-merah);
+  --color-kertas: var(--kertas);
+  --color-kertas-garis: var(--kertas-garis);
+  --color-tinta: var(--tinta);
+  --color-tinta-redup: var(--tinta-redup);
+  --font-sans: var(--font-jakarta);
+  --font-kapur: var(--font-caveat);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: var(--kertas);
+  color: var(--tinta);
+  font-family: var(--font-jakarta), system-ui, sans-serif;
+}
+
+:focus-visible {
+  outline: 3px solid var(--pensil);
+  outline-offset: 2px;
+}
+
+/* Permukaan papan tulis: sedikit sisa debu kapur di sudut */
+.papan-tulis {
+  background-color: var(--papan);
+  background-image:
+    radial-gradient(ellipse 70% 60% at 15% 0%, rgb(238 242 236 / 0.07), transparent 60%),
+    radial-gradient(ellipse 60% 50% at 100% 100%, rgb(238 242 236 / 0.05), transparent 60%);
+  color: var(--kapur);
+}
+
+/* Garis tulisan kapur di bawah input nama kelas */
+.garis-kapur {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px dashed rgb(238 242 236 / 0.45);
+  border-radius: 0;
+}
+.garis-kapur:focus {
+  outline: none;
+  border-bottom-style: solid;
+  border-bottom-color: var(--pensil);
+}
+
+@keyframes denyut {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.denyut-live { animation: denyut 1.6s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ---- Tema komponen LiveKit disesuaikan ke papan tulis ---- */
+[data-lk-theme="default"] {
+  --lk-bg: var(--papan-gelap);
+  --lk-bg2: #143128;
+  --lk-bg3: var(--papan-garis);
+  --lk-bg4: #35604f;
+  --lk-bg5: #42705e;
+  --lk-fg: var(--kapur);
+  --lk-fg2: var(--kapur-redup);
+  --lk-accent-bg: var(--pensil);
+  --lk-accent-fg: var(--tinta);
+  --lk-accent2: var(--pensil-tekan);
+  --lk-danger: var(--tinta-merah);
+  --lk-border-color: rgb(238 242 236 / 0.12);
+  --lk-border-radius: 0.75rem;
+  --lk-control-bg: var(--papan-terang);
+  --lk-control-hover-bg: var(--papan-garis);
+  --lk-control-active-bg: var(--pensil);
+  --lk-control-active-hover-bg: var(--pensil-tekan);
+  --lk-font-family: var(--font-jakarta), system-ui, sans-serif;
+  background: var(--papan-gelap);
+}
+
+[data-lk-theme="default"] .lk-participant-tile {
+  background: var(--papan);
+  border: 1px solid rgb(238 242 236 / 0.08);
+}
+
+/* Chat menyatu dengan panel samping */
+[data-lk-theme="default"] .lk-chat {
+  background: transparent;
+  height: 100%;
+  border: 0;
+}
+[data-lk-theme="default"] .lk-chat-header { display: none; }
+[data-lk-theme="default"] .lk-chat-form { border-top: 1px solid rgb(238 242 236 / 0.1); padding: 0.75rem; }
+[data-lk-theme="default"] .lk-chat-form-input {
+  background: var(--papan);
+  border: 1px solid rgb(238 242 236 / 0.15);
+  color: var(--kapur);
+}
+[data-lk-theme="default"] .lk-chat-entry .lk-message-body {
+  background: var(--papan-terang);
+  color: var(--kapur);
+}
+[data-lk-theme="default"] .lk-chat-entry[data-lk-message-origin="local"] .lk-message-body {
+  background: var(--pensil);
+  color: var(--tinta);
+}
+
+[data-lk-theme="default"] .lk-control-bar {
+  border: 0;
+  padding: 0;
+  gap: 0.5rem;
+  height: auto;
+}
+[data-lk-theme="default"] .lk-disconnect-button {
+  background: transparent;
+  border: 1px solid var(--tinta-merah);
+  color: #f3a497;
+}
+[data-lk-theme="default"] .lk-disconnect-button:hover {
+  background: var(--tinta-merah);
+  color: var(--kapur);
 }

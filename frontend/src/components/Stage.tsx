@@ -1,16 +1,10 @@
 "use client";
 
-import {
-  CarouselLayout,
-  FocusLayout,
-  GridLayout,
-  ParticipantTile,
-  useTracks,
-} from "@livekit/components-react";
+import { CarouselLayout, FocusLayout, GridLayout, ParticipantTile, useTracks } from "@livekit/components-react";
 import { Track } from "livekit-client";
 
 /** Panggung: share screen diprioritaskan, kamera host/co-host/penanya di bawahnya. */
-export default function Stage() {
+export default function Stage({ isPresenter }: { isPresenter: boolean }) {
   const tracks = useTracks(
     [
       { source: Track.Source.Camera, withPlaceholder: false },
@@ -24,8 +18,15 @@ export default function Stage() {
 
   if (tracks.length === 0) {
     return (
-      <div className="flex h-full items-center justify-center text-zinc-400">
-        Menunggu host memulai kamera atau share screen…
+      <div className="papan-tulis flex h-full flex-col items-center justify-center gap-3 rounded-2xl px-6 text-center">
+        <p className="font-kapur text-4xl text-kapur sm:text-5xl">
+          {isPresenter ? "Panggung masih kosong" : "Kelas belum dimulai"}
+        </p>
+        <p className="max-w-sm text-kapur-redup">
+          {isPresenter
+            ? "Nyalakan kamera atau share screen dari tombol di bawah untuk mulai mengajar."
+            : "Panggung akan tampil begitu host menyalakan kamera atau share screen."}
+        </p>
       </div>
     );
   }
