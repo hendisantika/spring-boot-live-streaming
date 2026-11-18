@@ -16,8 +16,8 @@ peserta menyimak, chat, dan angkat tangan untuk tanya jawab.
 3. Jalankan frontend:
    ```bash
    cp .env.example .env.local
-   npm install
-   npm run dev
+   bun install
+   bun run dev
    ```
 4. Buka http://localhost:3000, masukkan nama kelas.
    - **Host / Co-host**: pilih perannya dan isi host key (`LIVEKIT_HOST_ACCESS_KEY`).

@@ -15,8 +15,8 @@ updates:
       maven-minor-patch:
         update-types: [ "minor", "patch" ]
 
-  # Frontend Next.js
-  - package-ecosystem: npm
+  # Frontend Next.js (bun)
+  - package-ecosystem: bun
     directory: "/frontend"
     schedule:
       interval: daily

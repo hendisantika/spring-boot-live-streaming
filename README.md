@@ -40,7 +40,7 @@ backend lalu terhubung langsung ke LiveKit.
 
 ## Menjalankan Secara Lokal
 
-Prasyarat: JDK 25, Maven, Node.js 20.19+ (disarankan 22/24), dan LiveKit Server.
+Prasyarat: JDK 25, Maven, Node.js 22/24, [Bun](https://bun.sh), dan LiveKit Server.
 
 1. **LiveKit Server** (mode dev, key `devkey` / secret `secret`):
    ```bash
@@ -59,8 +59,8 @@ Prasyarat: JDK 25, Maven, Node.js 20.19+ (disarankan 22/24), dan LiveKit Server.
    ```bash
    cd frontend
    cp .env.example .env.local
-   npm install
-   npm run dev
+   bun install
+   bun run dev
    ```
 
 4. Buka http://localhost:3000, masukkan nama kelas, lalu gabung sebagai **Host** (isi host key) di satu tab
@@ -162,7 +162,7 @@ Di server berjalan dua container:
 
 ```bash
 mvn verify                                  # backend
-cd frontend && npm run lint && npm run build  # frontend
+cd frontend && bun run lint && bun run build  # frontend
 ```
 
 ## CI & Dependabot
@@ -170,7 +170,7 @@ cd frontend && npm run lint && npm run build  # frontend
 - [GitHub Actions](.github/workflows/ci.yml) (satu workflow CI/CD): build dan test backend serta frontend pada setiap
   push / PR ke `main` dan setiap hari pukul 05.00 WIB. Push ke `main` juga mem-build image Docker backend
   dan men-deploy-nya ke server.
-- [Dependabot](.github/dependabot.yml): cek update Maven, npm, dan GitHub Actions setiap hari pukul 05.00 WIB.
+- [Dependabot](.github/dependabot.yml): cek update Maven, bun (frontend), dan GitHub Actions setiap hari pukul 05.00 WIB.
 
 ## Keterbatasan Saat Ini
 
