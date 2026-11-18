@@ -38,7 +38,7 @@ backend lalu terhubung langsung ke LiveKit.
 
 ## Tech Stack
 
-- Java 25, Spring Boot 4.1, LiveKit Server SDK (`io.livekit:livekit-server`)
+- Java 25, Spring Boot 4.1, LiveKit Server SDK (`io.livekit:livekit-server`), springdoc-openapi (Swagger UI)
 - Next.js 16, React 19, Tailwind CSS 4, LiveKit React Components
 - LiveKit Server (self-host atau LiveKit Cloud)
 
@@ -87,6 +87,10 @@ Semua diatur lewat environment variable (lihat [`application.properties`](src/ma
 
 ## API
 
+📖 **Dokumentasi interaktif (Swagger UI): [https://streaming.jvm.my.id/api/docs](https://streaming.jvm.my.id/api/docs)**.
+Spec OpenAPI: [`/api/openapi`](https://streaming.jvm.my.id/api/openapi). Saat lokal: http://localhost:8080/api/docs.
+Untuk mencoba promote/demote, klik **Authorize** lalu isi `hostToken` dengan token milik HOST.
+
 | Method | Endpoint | Keterangan |
 |---|---|---|
 | `POST` | `/api/rooms/{room}/token` | Body `{"identity", "name", "role"}`; `role` = `HOST` / `CO_HOST` / `VIEWER` (default). Host / Co-host wajib header `X-Host-Key`. |
@@ -119,6 +123,7 @@ Angkat tangan dikirim lewat data channel dengan topic `raise-hand` dan payload `
 | Frontend Next.js | [https://live.jvm.my.id](https://live.jvm.my.id) | Vercel (root directory `frontend`, auto deploy dari `main`) |
 | Backend Spring Boot | `https://streaming.jvm.my.id/api` | Docker di server, di belakang nginx |
 | LiveKit signaling | `wss://streaming.jvm.my.id/rtc` | Docker di server yang sama, di belakang nginx |
+| Dokumentasi API | [https://streaming.jvm.my.id/api/docs](https://streaming.jvm.my.id/api/docs) | Swagger UI (springdoc-openapi) |
 | Health check nginx | [https://streaming.jvm.my.id/healthz](https://streaming.jvm.my.id/healthz) | Mengembalikan `ok` |
 
 > `https://streaming.jvm.my.id/` dan `GET /api/` memang mengembalikan 404: backend hanya melayani endpoint
