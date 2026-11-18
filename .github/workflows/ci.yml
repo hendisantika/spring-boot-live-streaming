@@ -74,11 +74,36 @@ jobs:
       - name: Build
         run: bun run build
 
+  # Deploy me-restart container backend DAN LiveKit (kelas yang berjalan terputus),
+  # jadi hanya dilakukan bila push benar-benar mengubah file backend/deploy.
+  changes:
+    name: Deteksi perubahan backend
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: dorny/paths-filter@v4
+        id: filter
+        with:
+          filters: |
+            backend:
+              - 'src/**'
+              - 'pom.xml'
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'deploy/**'
+
   docker:
     name: Docker image (Docker Hub)
-    needs: backend
-    # Hanya push ke main atau dijalankan manual; PR & jadwal harian tidak push image
-    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    needs: [ backend, changes ]
+    # Push ke main yang mengubah backend, atau dijalankan manual.
+    # PR, jadwal harian, dan perubahan frontend/docs tidak build & deploy ulang.
+    if: >-
+      !cancelled() && !failure() && github.ref == 'refs/heads/main' &&
+      (github.event_name == 'workflow_dispatch' || needs.changes.outputs.backend == 'true')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7

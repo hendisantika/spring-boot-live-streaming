@@ -161,7 +161,10 @@ Angkat tangan dikirim lewat data channel dengan topic `raise-hand` dan payload `
 Image backend: [`hendisantika/live-streaming-service`](https://hub.docker.com/r/hendisantika/live-streaming-service),
 dengan tag = nomor run GitHub Actions (plus `latest`).
 
-Workflow [`ci.yml`](.github/workflows/ci.yml) (job `docker` dan `deploy`) berjalan setiap push ke `main`, setelah test backend lulus:
+Workflow [`ci.yml`](.github/workflows/ci.yml) (job `docker` dan `deploy`) berjalan setelah test backend lulus, **hanya**
+untuk push ke `main` yang mengubah `src/`, `pom.xml`, `Dockerfile`, `.dockerignore`, atau `deploy/`, atau saat dijalankan
+manual (**Actions → CI/CD → Run workflow**). Deploy me-restart container backend dan LiveKit, sehingga kelas yang sedang
+berjalan akan terputus; perubahan frontend atau dokumentasi tidak memicu deploy ulang.
 
 1. Build image dari [`Dockerfile`](Dockerfile), lalu push ke Docker Hub dengan tag `<run_number>` dan `latest`.
 2. Masuk ke server lewat SSH (dengan retry, karena port SSH server ramai bot) dan menjalankan [`deploy/remote-deploy.sh`](deploy/remote-deploy.sh): mengambil
@@ -211,8 +214,8 @@ cd frontend && bun run lint && bun run build  # frontend
 ## CI & Dependabot
 
 - [GitHub Actions](.github/workflows/ci.yml) (satu workflow CI/CD): build dan test backend serta frontend pada setiap
-  push / PR ke `main` dan setiap hari pukul 05.00 WIB. Push ke `main` juga mem-build image Docker backend
-  dan men-deploy-nya ke server.
+  push / PR ke `main` dan setiap hari pukul 05.00 WIB. Push ke `main` yang mengubah backend juga mem-build image
+  Docker dan men-deploy-nya ke server.
 - [Dependabot](.github/dependabot.yml): cek update Maven, bun (frontend), dan GitHub Actions setiap hari pukul 05.00 WIB.
 
 ## Keterbatasan Saat Ini
