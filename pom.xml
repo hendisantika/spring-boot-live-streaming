@@ -20,7 +20,7 @@
     <properties>
         <java.version>25</java.version>
         <livekit-server.version>0.17.0</livekit-server.version>
-        <java-jwt.version>4.6.0</java-jwt.version>
+        <java-jwt.version>4.6.2</java-jwt.version>
     </properties>
 
     <dependencies>
