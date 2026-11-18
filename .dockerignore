@@ -1,0 +1,4 @@
+# Hanya pom.xml & src yang dibutuhkan image backend
+*
+!pom.xml
+!src/

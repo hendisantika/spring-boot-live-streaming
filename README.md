@@ -121,25 +121,42 @@ Angkat tangan dikirim lewat data channel dengan topic `raise-hand` dan payload `
 - Env Vercel: `NEXT_PUBLIC_API_URL=https://streaming.jvm.my.id`
 - DNS (Cloudflare): `CNAME live → <target dari "vercel domains verify live.jvm.my.id">`, mode **DNS only** (awan abu-abu).
 
-### Backend + LiveKit (VPS)
+### Backend + LiveKit (Docker di server)
 
-1. Pasang config nginx [`nginx/streaming.jvm.my.id.conf`](nginx/streaming.jvm.my.id.conf) (langkah ada di header file),
-   lalu terbitkan sertifikat dengan certbot. Butuh nginx 1.25.1 atau lebih baru (`http2 on`).
-2. Jalankan backend:
-   ```bash
-   LIVEKIT_URL=wss://streaming.jvm.my.id \
-   LIVEKIT_API_URL=http://127.0.0.1:7880 \
-   LIVEKIT_API_KEY=<key> LIVEKIT_API_SECRET=<secret> \
-   LIVEKIT_HOST_ACCESS_KEY=<kunci-host> \
-   LIVEKIT_ALLOWED_ORIGINS=https://live.jvm.my.id \
-   java -jar target/live-streaming-0.0.1-SNAPSHOT.jar
-   ```
-3. Jalankan LiveKit Server (non-dev) dengan key/secret yang sama dan `rtc.use_external_ip: true`.
-4. Buka firewall: `80/tcp`, `443/tcp`, `7881/tcp`, dan `7882/udp` (atau rentang UDP yang diset di `livekit.yaml`).
-   Port `7880` cukup diakses lewat nginx dan tidak perlu dibuka ke publik.
+Image backend: [`hendisantika/live-streaming-service`](https://hub.docker.com/r/hendisantika/live-streaming-service),
+dengan tag = nomor run GitHub Actions (plus `latest`).
 
-> Kalau `streaming.jvm.my.id` di-proxy Cloudflare (awan oranye), set SSL/TLS ke **Full (strict)**.
-> Signaling WebSocket tetap jalan lewat Cloudflare, sedangkan media WebRTC langsung ke IP server.
+Workflow [`ci.yml`](.github/workflows/ci.yml) (job `docker` dan `deploy`) berjalan setiap push ke `main`, setelah test backend lulus:
+
+1. Build image dari [`Dockerfile`](Dockerfile), lalu push ke Docker Hub dengan tag `<run_number>` dan `latest`.
+2. Menyalin [`deploy/compose.yaml`](deploy/compose.yaml) dan [`deploy/livekit.yaml`](deploy/livekit.yaml) ke
+   `~/live-streaming` di server lewat SSH.
+3. Menjalankan `docker compose pull && docker compose up -d`, lalu health check ke API.
+
+Di server berjalan dua container:
+
+| Container | Port | Keterangan |
+|---|---|---|
+| `live-streaming-service` | `127.0.0.1:8020` | Backend Spring Boot (diakses lewat nginx `/api`) |
+| `live-streaming-livekit` | `127.0.0.1:7880`, `7881/tcp`, `7882/udp` | LiveKit: signaling lewat nginx `/rtc`, media WebRTC langsung |
+
+**Secret & variable GitHub** (Settings → Secrets and variables → Actions):
+
+| Nama | Jenis | Isi |
+|---|---|---|
+| `DOCKERHUB_USERNAME` | secret | Username Docker Hub |
+| `DOCKERHUB_TOKEN` | secret | Access token Docker Hub (Read & Write) |
+| `SSH_PRIVATE_KEY` | secret | Private key deploy (khusus CI) |
+| `SSH_HOST`, `SSH_PORT`, `SSH_USER` | variable | Alamat server SSH. Job deploy hanya jalan kalau `SSH_HOST` terisi. |
+
+**Persiapan server (sekali saja):**
+
+1. Buat `~/live-streaming/.env` dari [`deploy/.env.example`](deploy/.env.example) dan isi secret LiveKit.
+2. Pasang config nginx [`nginx/streaming.jvm.my.id.conf`](nginx/streaming.jvm.my.id.conf) (langkah ada di header file).
+   TLS diterminasi Cloudflare, jadi nginx cukup `listen 80`.
+3. Buka firewall untuk media WebRTC: `7881/tcp` dan `7882/udp`.
+4. DNS Cloudflare: `streaming` → IP server (proxied). Signaling WebSocket bisa lewat Cloudflare,
+   sedangkan media WebRTC langsung ke IP server (`LIVEKIT_NODE_IP`).
 
 ## Testing
 
@@ -150,8 +167,9 @@ cd frontend && npm run lint && npm run build  # frontend
 
 ## CI & Dependabot
 
-- [GitHub Actions](.github/workflows/ci.yml): build dan test backend serta frontend pada setiap push / PR ke `main`,
-  dan setiap hari pukul 05.00 WIB.
+- [GitHub Actions](.github/workflows/ci.yml) (satu workflow CI/CD): build dan test backend serta frontend pada setiap
+  push / PR ke `main` dan setiap hari pukul 05.00 WIB. Push ke `main` juga mem-build image Docker backend
+  dan men-deploy-nya ke server.
 - [Dependabot](.github/dependabot.yml): cek update Maven, npm, dan GitHub Actions setiap hari pukul 05.00 WIB.
 
 ## Keterbatasan Saat Ini
