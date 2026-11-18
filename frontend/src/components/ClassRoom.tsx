@@ -2,7 +2,6 @@
 
 import "@livekit/components-styles";
 import {
-  Chat,
   ControlBar,
   LiveKitRoom,
   RoomAudioRenderer,
@@ -12,6 +11,7 @@ import {
 } from "@livekit/components-react";
 import { use, useState } from "react";
 import { ROLE_LABEL, ROOM_PATTERN, type Session } from "@/lib/api";
+import ChatPanel from "./ChatPanel";
 import HostPanel, { useRaisedHands } from "./HostPanel";
 import { ChatIcon, HandIcon, UsersIcon } from "./icons";
 import JoinForm from "./JoinForm";
@@ -58,7 +58,7 @@ export default function ClassRoom({ params }: { params: Promise<{ room: string }
         setSession(null);
       }}
       data-lk-theme="default"
-      className="flex h-dvh flex-col text-kapur"
+      className="flex flex-col overflow-hidden text-kapur"
     >
       <RoomView session={session} />
       <RoomAudioRenderer />
@@ -95,11 +95,13 @@ function RoomView({ session }: { session: Session }) {
       </header>
 
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <main className="min-h-[42vh] flex-1 p-3 sm:p-4">
-          <Stage isPresenter={isPresenter} />
+        <main className="flex min-h-[38vh] flex-1 flex-col p-3 sm:p-4">
+          <div className="min-h-0 flex-1">
+            <Stage isPresenter={isPresenter} />
+          </div>
         </main>
 
-        <aside className="flex h-[42vh] flex-col border-t border-kapur/10 bg-papan-gelap lg:h-auto lg:w-[22rem] lg:border-t-0 lg:border-l">
+        <aside className="flex h-[40vh] min-w-0 flex-col border-t border-kapur/10 bg-papan-gelap lg:h-auto lg:w-[22rem] lg:border-t-0 lg:border-l">
           {isHost ? (
             <div role="tablist" aria-label="Panel samping" className="flex border-b border-kapur/10">
               <TabButton active={tab === "chat"} onClick={() => setTab("chat")} icon={<ChatIcon />}>
@@ -120,7 +122,7 @@ function RoomView({ session }: { session: Session }) {
 
           {/* Keduanya tetap ter-mount agar riwayat chat & daftar angkat tangan tidak hilang saat pindah tab */}
           <div className={`min-h-0 flex-1 ${isHost && tab !== "chat" ? "hidden" : ""}`}>
-            <Chat />
+            <ChatPanel />
           </div>
           {isHost && (
             <div className={`min-h-0 flex-1 ${tab !== "qna" ? "hidden" : ""}`}>

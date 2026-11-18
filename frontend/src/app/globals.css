@@ -82,8 +82,9 @@ body {
   }
 }
 
-/* ---- Tema komponen LiveKit disesuaikan ke papan tulis ---- */
-[data-lk-theme="default"] {
+/* ---- Tema komponen LiveKit disesuaikan ke papan tulis ----
+   Selector diberi .lk-room-container agar menang dari stylesheet LiveKit yang dimuat belakangan. */
+.lk-room-container[data-lk-theme="default"] {
   --lk-bg: var(--papan-gelap);
   --lk-bg2: #143128;
   --lk-bg3: var(--papan-garis);
@@ -102,48 +103,28 @@ body {
   --lk-control-active-bg: var(--pensil);
   --lk-control-active-hover-bg: var(--pensil-tekan);
   --lk-font-family: var(--font-jakarta), system-ui, sans-serif;
-  background: var(--papan-gelap);
+  background-color: var(--papan-gelap);
+  height: 100dvh;
 }
 
-[data-lk-theme="default"] .lk-participant-tile {
+.lk-room-container[data-lk-theme="default"] .lk-participant-tile {
   background: var(--papan);
   border: 1px solid rgb(238 242 236 / 0.08);
 }
 
-/* Chat menyatu dengan panel samping */
-[data-lk-theme="default"] .lk-chat {
-  background: transparent;
-  height: 100%;
-  border: 0;
-}
-[data-lk-theme="default"] .lk-chat-header { display: none; }
-[data-lk-theme="default"] .lk-chat-form { border-top: 1px solid rgb(238 242 236 / 0.1); padding: 0.75rem; }
-[data-lk-theme="default"] .lk-chat-form-input {
-  background: var(--papan);
-  border: 1px solid rgb(238 242 236 / 0.15);
-  color: var(--kapur);
-}
-[data-lk-theme="default"] .lk-chat-entry .lk-message-body {
-  background: var(--papan-terang);
-  color: var(--kapur);
-}
-[data-lk-theme="default"] .lk-chat-entry[data-lk-message-origin="local"] .lk-message-body {
-  background: var(--pensil);
-  color: var(--tinta);
-}
-
-[data-lk-theme="default"] .lk-control-bar {
+.lk-room-container[data-lk-theme="default"] .lk-control-bar {
   border: 0;
   padding: 0;
   gap: 0.5rem;
   height: auto;
 }
-[data-lk-theme="default"] .lk-disconnect-button {
+
+.lk-room-container[data-lk-theme="default"] .lk-disconnect-button {
   background: transparent;
   border: 1px solid var(--tinta-merah);
   color: #f3a497;
 }
-[data-lk-theme="default"] .lk-disconnect-button:hover {
+.lk-room-container[data-lk-theme="default"] .lk-disconnect-button:hover {
   background: var(--tinta-merah);
   color: var(--kapur);
 }
