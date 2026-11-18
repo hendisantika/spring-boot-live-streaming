@@ -113,38 +113,38 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: Pull & restart containers
-        uses: appleboy/ssh-action@v1
+      - uses: actions/checkout@v7
+
+      # Port SSH server ramai bot, sehingga sshd (MaxStartups) kadang memutus koneksi baru
+      # secara acak. Karena itu: satu koneksi per percobaan, dengan retry untuk error koneksi.
+      - name: Deploy via SSH
         env:
+          SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_PORT: ${{ vars.SSH_PORT }}
+          SSH_USER: ${{ vars.SSH_USER }}
           IMAGE_TAG: ${{ github.run_number }}
-          # Server mengambil file compose dari commit yang sama (repo public), jadi cukup 1 koneksi SSH:
-          # server membatasi koneksi SSH beruntun (connection reset).
+          # Server mengambil file compose dari commit yang sama (repo public)
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/deploy
-        with:
-          host: ${{ vars.SSH_HOST }}
-          port: ${{ vars.SSH_PORT }}
-          username: ${{ vars.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          envs: IMAGE_TAG,RAW_BASE
-          script: |
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+
+          for attempt in $(seq 1 10); do
+            set +e
+            ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
+              -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
+              -o ConnectTimeout=20 -o ServerAliveInterval=15 \
+              "$SSH_USER@$SSH_HOST" \
+              "IMAGE_TAG='$IMAGE_TAG' RAW_BASE='$RAW_BASE' bash -s" < deploy/remote-deploy.sh
+            code=$?
             set -e
-            mkdir -p ~/live-streaming && cd ~/live-streaming
-            for f in compose.yaml livekit.yaml; do
-              curl -fsSL "${RAW_BASE}/${f}" -o "${f}.new" && mv "${f}.new" "${f}"
-            done
-            test -f .env || { echo "~/live-streaming/.env belum ada (lihat deploy/.env.example)"; exit 1; }
-            if grep -q '^IMAGE_TAG=' .env; then
-              sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" .env
-            else
-              echo "IMAGE_TAG=${IMAGE_TAG}" >> .env
-            fi
-            docker compose pull
-            docker compose up -d --remove-orphans
-            docker compose ps
-            for i in $(seq 1 30); do
-              code=$(curl -s -o /dev/null -w '%{http_code}' -X POST http://127.0.0.1:8020/api/rooms/healthcheck/token \
-                -H 'Content-Type: application/json' -d '{"identity":"deploy-check"}' || true)
-              [ "$code" = "200" ] && echo "API sehat (tag ${IMAGE_TAG})" && exit 0
-              sleep 2
-            done
-            echo "API tidak merespons 200 setelah deploy"; docker compose logs --tail 80 api; exit 1
+            [ "$code" -eq 0 ] && exit 0
+            # 255 = gagal koneksi SSH -> coba lagi; kode lain = script deploy gagal -> berhenti
+            [ "$code" -ne 255 ] && exit "$code"
+            echo "Koneksi SSH gagal (percobaan $attempt/10), coba lagi..."
+            sleep $((attempt * 5))
+          done
+          echo "Tidak bisa terhubung ke server setelah 10 percobaan"
+          exit 1

@@ -129,7 +129,7 @@ dengan tag = nomor run GitHub Actions (plus `latest`).
 Workflow [`ci.yml`](.github/workflows/ci.yml) (job `docker` dan `deploy`) berjalan setiap push ke `main`, setelah test backend lulus:
 
 1. Build image dari [`Dockerfile`](Dockerfile), lalu push ke Docker Hub dengan tag `<run_number>` dan `latest`.
-2. Masuk ke server lewat **satu** koneksi SSH (server membatasi koneksi SSH beruntun), lalu mengambil
+2. Masuk ke server lewat SSH (dengan retry, karena port SSH server ramai bot) dan menjalankan [`deploy/remote-deploy.sh`](deploy/remote-deploy.sh): mengambil
    [`deploy/compose.yaml`](deploy/compose.yaml) dan [`deploy/livekit.yaml`](deploy/livekit.yaml) dari commit
    yang sama ke `~/live-streaming`.
 3. Menjalankan `docker compose pull && docker compose up -d`, lalu health check ke API.
