@@ -20,6 +20,7 @@
     <properties>
         <java.version>25</java.version>
         <livekit-server.version>0.17.0</livekit-server.version>
+        <java-jwt.version>4.6.0</java-jwt.version>
     </properties>
 
     <dependencies>
@@ -27,6 +28,12 @@
             <groupId>io.livekit</groupId>
             <artifactId>livekit-server</artifactId>
             <version>${livekit-server.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.auth0</groupId>
+            <artifactId>java-jwt</artifactId>
+            <version>${java-jwt.version}</version>
         </dependency>
 
         <dependency>

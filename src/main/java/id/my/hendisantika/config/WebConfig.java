@@ -30,6 +30,6 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addMapping("/api/**")
                 .allowedOrigins(properties.allowedOrigins().toArray(String[]::new))
                 .allowedMethods("GET", "POST", "OPTIONS")
-                .allowedHeaders("*");
+                .allowedHeaders("Content-Type", "Authorization", "X-Host-Key");
     }
 }

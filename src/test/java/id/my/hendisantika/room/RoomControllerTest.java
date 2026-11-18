@@ -6,6 +6,9 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -22,13 +25,44 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 class RoomControllerTest {
 
+    private final LiveKitTokenService tokenService = new LiveKitTokenService(LiveKitTokenServiceTest.PROPS);
+    private final ParticipantService participantService = mock(ParticipantService.class);
     private MockMvc mockMvc;
 
     @BeforeEach
     void setUp() {
-        RoomController controller = new RoomController(new LiveKitTokenService(LiveKitTokenServiceTest.PROPS),
-                LiveKitTokenServiceTest.PROPS);
+        RoomController controller = new RoomController(tokenService, LiveKitTokenServiceTest.PROPS,
+                new HostTokenVerifier(LiveKitTokenServiceTest.PROPS), participantService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
+    }
+
+    private String bearer(ParticipantRole role) {
+        return "Bearer " + tokenService.createToken("kelas-1",
+                new id.my.hendisantika.room.dto.TokenRequest("user-1", null, role)).token();
+    }
+
+    @Test
+    void hostCanPromoteAndDemote() throws Exception {
+        mockMvc.perform(post("/api/rooms/kelas-1/participants/siswa-1/promote")
+                        .header("Authorization", bearer(ParticipantRole.HOST)))
+                .andExpect(status().isNoContent());
+        mockMvc.perform(post("/api/rooms/kelas-1/participants/siswa-1/demote")
+                        .header("Authorization", bearer(ParticipantRole.HOST)))
+                .andExpect(status().isNoContent());
+
+        verify(participantService).promote("kelas-1", "siswa-1");
+        verify(participantService).demote("kelas-1", "siswa-1");
+    }
+
+    @Test
+    void viewerCannotPromote() throws Exception {
+        mockMvc.perform(post("/api/rooms/kelas-1/participants/siswa-1/promote")
+                        .header("Authorization", bearer(ParticipantRole.VIEWER)))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(post("/api/rooms/kelas-1/participants/siswa-1/promote"))
+                .andExpect(status().isUnauthorized());
+
+        verify(participantService, never()).promote("kelas-1", "siswa-1");
     }
 
     @Test
