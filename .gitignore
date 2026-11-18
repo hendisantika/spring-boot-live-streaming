@@ -37,3 +37,6 @@ build/
 .vercel
 .env*
 !.env.example
+
+# Artefak Playwright MCP
+.playwright-mcp/
