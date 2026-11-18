@@ -40,3 +40,20 @@ peserta menyimak, chat, dan angkat tangan untuk tanya jawab.
 
 - Daftar angkat tangan disimpan di browser host; kalau host me-refresh halaman, daftar kosong lagi.
 - Host key adalah pengaman sementara sampai ada login/auth.
+
+## Membuat ulang screenshot
+
+Script [`scripts/screenshots.mjs`](scripts/screenshots.mjs) membuka Chrome headless sebagai Host dan dua Peserta,
+lalu menyimpan screenshot ke `docs/screenshots/`. Video kamera dan share screen dibuat dari HTML
+(slide pelajaran dan siluet peserta) supaya hasilnya rapi.
+
+Butuh Google Chrome, `ffmpeg`, dan Node.js 22 atau lebih baru.
+
+```bash
+echo "HOST_KEY=<host key>" > .env.screenshots   # diabaikan git
+node scripts/screenshots.mjs
+```
+
+Opsi lewat env: `BASE_URL` (default https://live.jvm.my.id), `ROOM`, `OUT_DIR`, `CHROME_CHANNEL`.
+Jangan jalankan saat workflow CI/CD sedang men-deploy backend, karena koneksi kelas akan terputus.
+

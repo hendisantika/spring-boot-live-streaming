@@ -15,6 +15,28 @@ Media real-time ditangani [LiveKit](https://livekit.io) (WebRTC SFU). Repo ini b
 - **Backend Spring Boot** (root): token server dan pengatur peran peserta.
 - **Frontend Next.js** ([`frontend/`](frontend)): halaman kelas untuk web.
 
+## Screenshot
+
+Diambil dari https://live.jvm.my.id dengan [`frontend/scripts/screenshots.mjs`](frontend/scripts/screenshots.mjs).
+
+### Host
+
+| Mengajar dengan share screen | Peserta mengangkat tangan | Mengizinkan peserta bicara |
+|---|---|---|
+| ![Host membagikan slide dan membaca chat](docs/screenshots/host.png) | ![Tab Tanya jawab berisi peserta yang mengangkat tangan](docs/screenshots/host-tanya-jawab.png) | ![Budi sedang bicara dengan kamera menyala](docs/screenshots/host-penanya.png) |
+
+### Peserta
+
+| Menyimak dan angkat tangan | Diizinkan bicara oleh host | Di ponsel |
+|---|---|---|
+| ![Peserta menyimak slide dan chat](docs/screenshots/peserta.png) | ![Peserta bicara dengan kamera menyala](docs/screenshots/peserta-bicara.png) | ![Tampilan peserta di ponsel](docs/screenshots/peserta-mobile.png) |
+
+### Halaman depan dan form gabung
+
+| Halaman depan | Form gabung |
+|---|---|
+| ![Halaman depan Kelas Live](docs/screenshots/landing.png) | ![Form gabung ke kelas sebagai Host](docs/screenshots/gabung.png) |
+
 ## Arsitektur
 
 ```
