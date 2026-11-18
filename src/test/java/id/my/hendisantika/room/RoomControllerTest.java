@@ -100,6 +100,20 @@ class RoomControllerTest {
     }
 
     @Test
+    void invalidRoomNameIsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/rooms/bad room!/token").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"identity\":\"siswa-1\"}"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void invalidIdentityOnPromoteIsBadRequest() throws Exception {
+        mockMvc.perform(post("/api/rooms/kelas-1/participants/bad id!/promote")
+                        .header("Authorization", bearer(ParticipantRole.HOST)))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
     void blankIdentityIsRejected() throws Exception {
         mockMvc.perform(post("/api/rooms/kelas-1/token").contentType(MediaType.APPLICATION_JSON)
                         .content("{\"identity\":\"\"}"))
