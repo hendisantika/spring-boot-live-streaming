@@ -1,7 +1,30 @@
 "use client";
 
-import { CarouselLayout, FocusLayout, GridLayout, ParticipantTile, useTracks } from "@livekit/components-react";
+import {
+  CarouselLayout,
+  GridLayout,
+  isTrackReference,
+  ParticipantTile,
+  type TrackReference,
+  useTracks,
+  VideoTrack,
+} from "@livekit/components-react";
 import { Track } from "livekit-client";
+import { ScreenIcon } from "./icons";
+
+/** Tile share screen dengan label berbahasa Indonesia (bawaan LiveKit: "<nama>'s screen"). */
+function ScreenShareTile({ trackRef }: { trackRef: TrackReference }) {
+  const owner = trackRef.participant.name || trackRef.participant.identity;
+  return (
+    <div className="relative h-full overflow-hidden rounded-2xl border border-kapur/10 bg-black">
+      <VideoTrack trackRef={trackRef} className="h-full w-full object-contain" />
+      <span className="absolute bottom-3 left-3 flex items-center gap-1.5 rounded-md bg-papan-gelap/85 px-2.5 py-1 text-sm text-kapur">
+        <ScreenIcon />
+        Layar {owner}
+      </span>
+    </div>
+  );
+}
 
 /** Panggung: share screen diprioritaskan, kamera host/co-host/penanya di bawahnya. */
 export default function Stage({ isPresenter }: { isPresenter: boolean }) {
@@ -13,7 +36,7 @@ export default function Stage({ isPresenter }: { isPresenter: boolean }) {
     { onlySubscribed: false },
   );
 
-  const screen = tracks.find((t) => t.source === Track.Source.ScreenShare);
+  const screen = tracks.filter(isTrackReference).find((t) => t.source === Track.Source.ScreenShare);
   const cameras = tracks.filter((t) => t.source === Track.Source.Camera);
 
   if (tracks.length === 0) {
@@ -35,7 +58,7 @@ export default function Stage({ isPresenter }: { isPresenter: boolean }) {
     return (
       <div className="flex h-full flex-col gap-2">
         <div className="min-h-0 flex-1">
-          <FocusLayout trackRef={screen} />
+          <ScreenShareTile trackRef={screen} />
         </div>
         {cameras.length > 0 && (
           <div className="h-28 shrink-0 sm:h-36">
