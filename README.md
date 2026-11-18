@@ -148,15 +148,22 @@ Di server berjalan dua container:
 | `DOCKERHUB_USERNAME` | secret | Username Docker Hub |
 | `DOCKERHUB_TOKEN` | secret | Access token Docker Hub (Read & Write) |
 | `SSH_PRIVATE_KEY` | secret | Private key deploy (khusus CI) |
+| `LIVEKIT_API_KEY` | secret | API key LiveKit (dipakai backend dan LiveKit Server) |
+| `LIVEKIT_API_SECRET` | secret | API secret LiveKit, minimal 32 karakter |
+| `LIVEKIT_HOST_ACCESS_KEY` | secret | Kunci untuk masuk sebagai Host / Co-host |
 | `SSH_HOST`, `SSH_PORT`, `SSH_USER` | variable | Alamat server SSH. Job deploy hanya jalan kalau `SSH_HOST` terisi. |
+
+**Tidak ada file `.env` di server.** Secret LiveKit dikirim dari GitHub Secrets lewat stdin SSH
+(tidak muncul di argumen proses), lalu diteruskan ke container sebagai environment saat `docker compose up`.
+Nilai non-rahasia (`LIVEKIT_URL`, `LIVEKIT_ALLOWED_ORIGINS`, `LIVEKIT_NODE_IP`) punya default di
+[`deploy/compose.yaml`](deploy/compose.yaml).
 
 **Persiapan server (sekali saja):**
 
-1. Buat `~/live-streaming/.env` dari [`deploy/.env.example`](deploy/.env.example) dan isi secret LiveKit.
-2. Pasang config nginx [`nginx/streaming.jvm.my.id.conf`](nginx/streaming.jvm.my.id.conf) (langkah ada di header file).
+1. Pasang config nginx [`nginx/streaming.jvm.my.id.conf`](nginx/streaming.jvm.my.id.conf) (langkah ada di header file).
    TLS diterminasi Cloudflare, jadi nginx cukup `listen 80`.
-3. Buka firewall untuk media WebRTC: `7881/tcp` dan `7882/udp`.
-4. DNS Cloudflare: `streaming` → IP server (proxied). Signaling WebSocket bisa lewat Cloudflare,
+2. Buka firewall untuk media WebRTC: `7881/tcp` dan `7882/udp`.
+3. DNS Cloudflare: `streaming` → IP server (proxied). Signaling WebSocket bisa lewat Cloudflare,
    sedangkan media WebRTC langsung ke IP server (`LIVEKIT_NODE_IP`).
 
 ## Testing

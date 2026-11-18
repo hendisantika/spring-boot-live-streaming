@@ -1,24 +1,25 @@
 #!/usr/bin/env bash
-# Dijalankan di server lewat SSH oleh job "deploy" (ci.yml):
-#   IMAGE_TAG=<run_number> RAW_BASE=<url raw folder deploy> bash -s < deploy/remote-deploy.sh
+# Dijalankan di server lewat SSH oleh job "deploy" (ci.yml). Semua variabel dikirim lewat
+# stdin sebagai baris `export ...` sebelum isi script ini, jadi secret tidak pernah muncul
+# di argumen proses (`ps`) maupun tersimpan di file di server.
 set -euo pipefail
 
 : "${IMAGE_TAG:?IMAGE_TAG wajib diisi}"
 : "${RAW_BASE:?RAW_BASE wajib diisi}"
+: "${LIVEKIT_API_KEY:?LIVEKIT_API_KEY wajib diisi}"
+: "${LIVEKIT_API_SECRET:?LIVEKIT_API_SECRET wajib diisi}"
+: "${LIVEKIT_HOST_ACCESS_KEY:?LIVEKIT_HOST_ACCESS_KEY wajib diisi}"
+export IMAGE_TAG LIVEKIT_API_KEY LIVEKIT_API_SECRET LIVEKIT_HOST_ACCESS_KEY
 
 mkdir -p ~/live-streaming && cd ~/live-streaming
+
+# Jangan ada .env di server; compose juga otomatis membaca .env kalau ada, jadi hapus sisa lama
+rm -f .env
 
 # File compose dari commit yang sedang di-deploy
 for f in compose.yaml livekit.yaml; do
   curl -fsSL "${RAW_BASE}/${f}" -o "${f}.new" && mv "${f}.new" "${f}"
 done
-
-test -f .env || { echo "$HOME/live-streaming/.env belum ada (lihat deploy/.env.example)"; exit 1; }
-if grep -q '^IMAGE_TAG=' .env; then
-  sed -i "s/^IMAGE_TAG=.*/IMAGE_TAG=${IMAGE_TAG}/" .env
-else
-  echo "IMAGE_TAG=${IMAGE_TAG}" >> .env
-fi
 
 docker compose pull
 docker compose up -d --remove-orphans

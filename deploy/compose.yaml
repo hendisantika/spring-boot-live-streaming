@@ -1,17 +1,21 @@
-# Dijalankan di server dari ~/live-streaming (file ini disalin otomatis oleh workflow Docker).
-#   docker compose up -d
-# Nilai rahasia dan IMAGE_TAG ada di ~/live-streaming/.env (lihat .env.example).
+# Dijalankan di server dari ~/live-streaming oleh deploy/remote-deploy.sh (job "deploy" di ci.yml).
+# Tidak ada file .env di server: secret dikirim dari GitHub Secrets sebagai environment
+# saat `docker compose up`, lalu diteruskan ke container lewat blok `environment` di bawah.
 name: live-streaming
 
 services:
   api:
-    image: hendisantika/live-streaming-service:${IMAGE_TAG:-latest}
+    image: hendisantika/live-streaming-service:${IMAGE_TAG:?IMAGE_TAG wajib diisi}
     container_name: live-streaming-service
     restart: unless-stopped
-    env_file: .env
     environment:
+      LIVEKIT_URL: ${LIVEKIT_URL:-wss://streaming.jvm.my.id}
       # Backend memanggil server API LiveKit lewat network compose
       LIVEKIT_API_URL: http://livekit:7880
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY:?LIVEKIT_API_KEY wajib diisi}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET:?LIVEKIT_API_SECRET wajib diisi}
+      LIVEKIT_HOST_ACCESS_KEY: ${LIVEKIT_HOST_ACCESS_KEY:?LIVEKIT_HOST_ACCESS_KEY wajib diisi}
+      LIVEKIT_ALLOWED_ORIGINS: ${LIVEKIT_ALLOWED_ORIGINS:-https://live.jvm.my.id}
     ports:
       # Hanya untuk nginx di host (streaming.jvm.my.id/api)
       - "127.0.0.1:8020:8080"
@@ -22,7 +26,8 @@ services:
     image: livekit/livekit-server:v1.13.11
     container_name: live-streaming-livekit
     restart: unless-stopped
-    command: --config /etc/livekit.yaml --node-ip ${LIVEKIT_NODE_IP}
+    # IP publik server, diumumkan LiveKit ke client untuk media WebRTC
+    command: --config /etc/livekit.yaml --node-ip ${LIVEKIT_NODE_IP:-165.22.246.205}
     environment:
       LIVEKIT_KEYS: "${LIVEKIT_API_KEY}: ${LIVEKIT_API_SECRET}"
     volumes:

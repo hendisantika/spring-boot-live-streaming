@@ -126,7 +126,24 @@ jobs:
           IMAGE_TAG: ${{ github.run_number }}
           # Server mengambil file compose dari commit yang sama (repo public)
           RAW_BASE: https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/deploy
+          # Secret container: tidak disimpan sebagai file di server
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          LIVEKIT_HOST_ACCESS_KEY: ${{ secrets.LIVEKIT_HOST_ACCESS_KEY }}
         run: |
+          for v in LIVEKIT_API_KEY LIVEKIT_API_SECRET LIVEKIT_HOST_ACCESS_KEY; do
+            [ -n "${!v}" ] || { echo "::error::Secret $v belum diisi"; exit 1; }
+          done
+
+          # Variabel dikirim lewat stdin (baris export) sebelum isi script, bukan lewat argumen
+          # command SSH, supaya secret tidak terlihat di `ps` oleh user lain di server.
+          {
+            for v in IMAGE_TAG RAW_BASE LIVEKIT_API_KEY LIVEKIT_API_SECRET LIVEKIT_HOST_ACCESS_KEY; do
+              printf 'export %s=%q\n' "$v" "${!v}"
+            done
+            cat deploy/remote-deploy.sh
+          } > "$RUNNER_TEMP/deploy-input.sh"
+
           install -m 700 -d ~/.ssh
           printf '%s\n' "$SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
@@ -136,8 +153,7 @@ jobs:
             ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
               -o BatchMode=yes -o StrictHostKeyChecking=accept-new \
               -o ConnectTimeout=20 -o ServerAliveInterval=15 \
-              "$SSH_USER@$SSH_HOST" \
-              "IMAGE_TAG='$IMAGE_TAG' RAW_BASE='$RAW_BASE' bash -s" < deploy/remote-deploy.sh
+              "$SSH_USER@$SSH_HOST" "bash -s" < "$RUNNER_TEMP/deploy-input.sh"
             code=$?
             set -e
             [ "$code" -eq 0 ] && exit 0
